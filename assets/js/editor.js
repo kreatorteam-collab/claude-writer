@@ -62,6 +62,45 @@
         return doc.body.innerHTML;
     }
 
+    // Garantăm nota de final (disclaimer) ca <blockquote> în ORICE articol:
+    //  - dacă există deja un <blockquote>, nu atingem nimic;
+    //  - dacă modelul a pus o notă („Notă:…") ca <p>/<i>, o împachetăm în <blockquote>;
+    //  - dacă lipsește, adăugăm la final disclaimer-ul configurat (CW.disclaimer).
+    function ensureDisclaimer(html) {
+        var doc = document.implementation.createHTMLDocument('');
+        doc.body.innerHTML = String(html || '');
+
+        if (doc.body.querySelector('blockquote')) { return doc.body.innerHTML; }
+
+        var blocks = doc.body.querySelectorAll('p, i, em');
+        var noteEl = null;
+        for (var i = blocks.length - 1; i >= 0; i--) {
+            if (/^\s*Not[ăa]\s*:/.test(blocks[i].textContent || '')) { noteEl = blocks[i]; break; }
+        }
+        if (noteEl) {
+            var block = noteEl;
+            if ((block.tagName === 'I' || block.tagName === 'EM') && block.parentNode && block.parentNode.tagName === 'P') {
+                block = block.parentNode;
+            }
+            var bq = doc.createElement('blockquote');
+            block.parentNode.insertBefore(bq, block);
+            bq.appendChild(block);
+            return doc.body.innerHTML;
+        }
+
+        var d = $.trim(CW.disclaimer || '');
+        if (d) {
+            var bq2 = doc.createElement('blockquote');
+            var p2 = doc.createElement('p');
+            var it = doc.createElement('i');
+            it.textContent = d;
+            p2.appendChild(it);
+            bq2.appendChild(p2);
+            doc.body.appendChild(bq2);
+        }
+        return doc.body.innerHTML;
+    }
+
     function setStatus(msg, type) {
         $status.show().attr('class', 'cw-status' + (type ? ' cw-' + type : '')).html(msg);
     }
@@ -160,6 +199,7 @@
         } else { // article / rewrite -> direct în editor
             $output.hide();
             var html = (action === 'article') ? stripLeadingTitle(text, getPostTitle()) : cwSanitize(text);
+            if (action === 'article') { html = ensureDisclaimer(html); }
             insertContent(html);
             setStatus(CW.i18n.inserted + c, 'ok');
         }

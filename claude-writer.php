@@ -3,7 +3,7 @@
  * Plugin Name: Claude Writer
  * Plugin URI: https://targetseo.ro/
  * Description: Generează și rescrie articole SEO direct în editor, cu alegere între cele 3 modele Claude (Haiku 4.5, Sonnet 4.6, Opus 4.8). Conexiune directă la API-ul Anthropic, cu calcul de cost real per model și limită lunară de cheltuieli.
- * Version: 1.1.8
+ * Version: 1.1.9
  * Author: Eduard / TargetSEO
  * Text Domain: claude-writer
  * Requires at least: 5.6
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('CW_VERSION', '1.1.8');
+define('CW_VERSION', '1.1.9');
 define('CW_PATH', plugin_dir_path(__FILE__));
 define('CW_URL', plugin_dir_url(__FILE__));
 
@@ -105,6 +105,18 @@ TXT;
             $patched = str_replace($old_nota, $new_nota, $patched);
         }
 
+        // 3) Nota informativă: format <blockquote> (1.1.4 -> 1.1.9).
+        $patched = str_replace(
+            '(paragraf în <i> </i>, începută cu „Notă:")',
+            'într-un bloc <blockquote> cu textul în <i> </i>, începută cu „Notă:"',
+            $patched
+        );
+        $patched = str_replace(
+            '– Disclaimer-ul cu <i> ... </i>',
+            '– Nota informativă (disclaimer) e OBLIGATORIE și se pune într-un <blockquote> cu textul în <i> ... </i>',
+            $patched
+        );
+
         if ($patched !== $cur_system) {
             update_option('cw_system_prompt', $patched, 'no');
         }
@@ -136,6 +148,11 @@ TXT;
         update_option('cw_stream_enabled', 1, 'no');
     }
 
+    // Notă de final (disclaimer) configurabilă — rezerva garantată din editor.js.
+    if (false === get_option('cw_disclaimer', false)) {
+        update_option('cw_disclaimer', CW_Admin::default_disclaimer(), 'no');
+    }
+
     update_option('cw_db_version', CW_VERSION, 'no');
 });
 
@@ -155,6 +172,7 @@ register_activation_hook(__FILE__, function () {
         'cw_rewrite_prompt'     => CW_Admin::default_rewrite_prompt(),
         'cw_title_prompt'       => CW_Admin::default_title_prompt(),
         'cw_keywords_prompt'    => CW_Admin::default_keywords_prompt(),
+        'cw_disclaimer'         => CW_Admin::default_disclaimer(),
         // Statistici de utilizare (create din timp ca să nu se autoîncarce)
         'cw_calls_total'        => 0,
         'cw_cost_total'         => 0,

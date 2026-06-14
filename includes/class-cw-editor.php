@@ -43,6 +43,7 @@ class CW_Editor {
             'default'   => CW_Models::default_model(),
             'stream'    => (bool) get_option('cw_stream_enabled', 0),
             'hasKey'    => CW_API::has_key(),
+            'disclaimer'=> (string) get_option('cw_disclaimer', CW_Admin::default_disclaimer()),
             'i18n'      => array(
                 'working'  => __('Se generează…', 'claude-writer'),
                 'noKey'    => __('Configurează întâi cheia API în Setări → Claude Writer.', 'claude-writer'),

@@ -56,6 +56,7 @@ class CW_Admin {
             'cw_rewrite_prompt'     => 'sanitize_textarea_field',
             'cw_title_prompt'       => 'sanitize_textarea_field',
             'cw_keywords_prompt'    => 'sanitize_textarea_field',
+            'cw_disclaimer'         => 'sanitize_textarea_field',
         );
         foreach ($opts as $name => $cb) {
             register_setting('cw_settings', $name, array('sanitize_callback' => $cb));
@@ -206,6 +207,12 @@ class CW_Admin {
                         <p>
                             <label class="cw-label"><?php esc_html_e('Cuvinte cheie — folosește {{continut}}', 'claude-writer'); ?></label>
                             <textarea name="cw_keywords_prompt" class="widefat cw-mono" rows="2"><?php echo esc_textarea(get_option('cw_keywords_prompt', self::default_keywords_prompt())); ?></textarea>
+                        </p>
+
+                        <p>
+                            <label class="cw-label"><?php esc_html_e('Notă de final (disclaimer) — rezervă garantată', 'claude-writer'); ?></label>
+                            <textarea name="cw_disclaimer" class="widefat cw-mono" rows="3"><?php echo esc_textarea(get_option('cw_disclaimer', self::default_disclaimer())); ?></textarea>
+                            <span class="cw-muted"><?php esc_html_e('Apare ca blockquote la finalul fiecărui articol. Dacă modelul scrie deja o notă, o folosim pe a lui; altfel se pune asta. Adaptează la nișa site-ului (ex. „consultă medicul" pe site medical).', 'claude-writer'); ?></span>
                         </p>
 
                         <?php submit_button(__('Salvează setările', 'claude-writer')); ?>
@@ -416,7 +423,7 @@ Regula simplă: dacă ai dubii dacă să incluzi FAQ, înseamnă că probabil nu
 NOTA INFORMATIVĂ
 ═══════════════════════════════════════
 
-OBLIGATORIU în FIECARE articol, fără excepție: la finalul articolului, înainte de paragraful de încheiere SAU după, adaugă o notă informativă (paragraf în <i> </i>, începută cu „Notă:") — un disclaimer scurt, neutru, profesionist. Specialistul recomandat se alege în funcție de nișă: medic, farmacist, nutriționist, dermatolog, ginecolog, pediatru, avocat, consultant financiar, broker credite, mecanic auto, electrician autorizat, instalator, veterinar, psiholog, antrenor personal, agent imobiliar etc. Nu folosi ton alarmist.
+OBLIGATORIU în FIECARE articol, fără excepție: la finalul articolului, înainte de paragraful de încheiere SAU după, adaugă o notă informativă într-un bloc <blockquote> cu textul în <i> </i>, începută cu „Notă:" — un disclaimer scurt, neutru, profesionist. Specialistul recomandat se alege în funcție de nișă: medic, farmacist, nutriționist, dermatolog, ginecolog, pediatru, avocat, consultant financiar, broker credite, mecanic auto, electrician autorizat, instalator, veterinar, psiholog, antrenor personal, agent imobiliar etc. Nu folosi ton alarmist.
 
 Chiar și pentru articolele pur recreative (rețete, recomandări de filme/cărți, povești, lifestyle ușor) nota NU se omite niciodată — o formulezi scurt și editorial (o mențiune de bun-simț), dar trebuie să existe în orice articol.
 
@@ -443,7 +450,7 @@ FORMAT HTML DE LIVRARE
 – FĂRĂ tabele (decât la cerere explicită)
 – FĂRĂ markdown, FĂRĂ blocuri de cod, FĂRĂ comentarii înainte sau după articol
 – FĂRĂ explicații despre cum a fost scris articolul
-– Disclaimer-ul cu <i> ... </i>
+– Nota informativă (disclaimer) e OBLIGATORIE și se pune într-un <blockquote> cu textul în <i> ... </i>
 
 ═══════════════════════════════════════
 LIMBAJUL
@@ -480,7 +487,7 @@ Redactează articolul pe baza acestei teme / titlu / brief:
 
 Lungime: țintește aproximativ {{cuvinte}} de cuvinte pentru un articol standard (în general 900–1000). Dacă subiectul e un ghid, tutorial, listă pas-cu-pas, comparație amplă sau o temă complexă care cere detaliere, extinde la 1500–2000 de cuvinte pentru acoperire completă, chiar dacă ținta de mai sus e mai mică. Nu umfla artificial, dar NU lăsa articolul neterminat — închide-l natural înainte să se termine spațiul.
 Începe DIRECT cu primul paragraf (lead-ul). NU repeta titlul în conținut: fără H1, și fără ca primul subtitlu (H2/H3) să fie titlul articolului sau o reformulare a lui. Titlul există deja deasupra, în pagină. Primul element livrat trebuie să fie un <p>, nu un heading. Aplică toate regulile editoriale, de structură și de format HTML din instrucțiunile de sistem.
-Livrează DOAR HTML curat (h2, h3, p, ul, ol, li, strong, i), fără markdown, fără blocuri de cod și fără niciun comentariu înainte sau după articol.
+Livrează DOAR HTML curat (h2, h3, p, ul, ol, li, strong, i, blockquote), fără markdown, fără blocuri de cod și fără niciun comentariu înainte sau după articol.
 TXT;
     }
 
@@ -494,6 +501,10 @@ TXT;
 
     public static function default_keywords_prompt() {
         return "Extrage 3-5 cuvinte cheie SEO relevante din textul de mai jos. Returnează DOAR cuvintele cheie separate prin virgulă, fără explicații:\n\n{{continut}}";
+    }
+
+    public static function default_disclaimer() {
+        return 'Notă: Informațiile din acest articol au caracter general și nu înlocuiesc sfatul unui specialist. Pentru situația ta specifică, consultă un specialist de specialitate.';
     }
 }
 
