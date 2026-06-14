@@ -35,6 +35,18 @@
 }
 .cw-status.cw-ok  { background: #edfaef; color: #00652c; }
 .cw-status.cw-err { background: #fcf0f1; color: #a00; }
+.cw-status.cw-working { background: #f0f6fc; color: #1d2327; }
+.cw-spinner {
+    display: inline-block;
+    width: 13px; height: 13px;
+    margin-right: 7px;
+    vertical-align: -2px;
+    border: 2px solid #2271b1;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: cw-spin .7s linear infinite;
+}
+@keyframes cw-spin { to { transform: rotate(360deg); } }
 .cw-output {
     max-height: 320px;
     overflow: auto;

@@ -66,6 +66,12 @@
         $status.show().attr('class', 'cw-status' + (type ? ' cw-' + type : '')).html(msg);
     }
 
+    // Status „se lucrează" cu spinner animat (fără a afișa textul brut generat).
+    function setWorking() {
+        $status.show().attr('class', 'cw-status cw-working')
+               .html('<span class="cw-spinner" aria-hidden="true"></span>' + CW.i18n.working);
+    }
+
     function busy(on) { $('.cw-btn').prop('disabled', on); }
 
     // Cât timp generăm (request lung), încetinim heartbeat-ul wp-admin ca să nu
@@ -182,7 +188,7 @@
         data.action = 'cw_generate';
         data.nonce = CW.nonce;
         busy(true);
-        setStatus(CW.i18n.working);
+        setWorking();
 
         $.post(CW.ajaxUrl, data)
             .done(function (res) {
@@ -202,8 +208,8 @@
         var action = data.act;
         busy(true);
         cwHeartbeat(true);
-        setStatus(CW.i18n.working);
-        $output.html('').show(); // afișăm progresul live
+        setWorking();
+        $output.hide().html(''); // nu mai afișăm textul brut în timpul generării
         var acc = '';
 
         fetch(CW.restUrl, {
@@ -234,7 +240,8 @@
                             var c = 0; try { c = JSON.parse(payload).cost; } catch (e) {}
                             handleResult(action, acc, c); // la final: inserează în editor
                         } else if (payload && payload !== 'ok') {
-                            try { var t = JSON.parse(payload).text; if (t) { acc += t; $output.text(acc); } } catch (e) {}
+                            // acumulăm intern, dar NU afișăm textul brut (doar spinner-ul rulează)
+                            try { var t = JSON.parse(payload).text; if (t) { acc += t; } } catch (e) {}
                         }
                     });
                     return pump();

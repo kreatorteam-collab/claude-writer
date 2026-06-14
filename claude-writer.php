@@ -3,7 +3,7 @@
  * Plugin Name: Claude Writer
  * Plugin URI: https://targetseo.ro/
  * Description: Generează și rescrie articole SEO direct în editor, cu alegere între cele 3 modele Claude (Haiku 4.5, Sonnet 4.6, Opus 4.8). Conexiune directă la API-ul Anthropic, cu calcul de cost real per model și limită lunară de cheltuieli.
- * Version: 1.1.6
+ * Version: 1.1.7
  * Author: Eduard / TargetSEO
  * Text Domain: claude-writer
  * Requires at least: 5.6
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('CW_VERSION', '1.1.6');
+define('CW_VERSION', '1.1.7');
 define('CW_PATH', plugin_dir_path(__FILE__));
 define('CW_URL', plugin_dir_url(__FILE__));
 
