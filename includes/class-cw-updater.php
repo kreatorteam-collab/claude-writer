@@ -133,19 +133,28 @@ class CW_Updater {
      * „claude-writer" ca update-ul să suprascrie plugin-ul existent, nu să-l dubleze.
      */
     public function fix_source($source, $remote_source, $upgrader, $hook_extra = array()) {
-        if (empty($hook_extra['plugin']) || $hook_extra['plugin'] !== $this->basename) { return $source; }
-        if (false === strpos(basename($source), 'claude-writer')) { return $source; }
+        // Acționăm doar pentru pachetul nostru: după hook_extra SAU după numele folderului extras.
+        $ours = (!empty($hook_extra['plugin']) && $hook_extra['plugin'] === $this->basename)
+             || (false !== strpos(basename(rtrim($source, '/')), 'claude-writer'));
+        if (!$ours) { return $source; }
 
-        $expected = $this->slug;
+        $expected = $this->slug; // claude-writer
         $actual   = basename(rtrim($source, '/'));
-        if ($actual === $expected) { return $source; }
+
+        // IMPORTANT: întoarce MEREU calea cu slash final. Altfel Plugin_Upgrader::check_package()
+        // face glob('.../claude-writer*.php') în loc de glob('.../claude-writer/*.php'), nu găsește
+        // pluginul și raportează „Pachetul nu a putut fi instalat".
+        if ($actual === $expected) { return trailingslashit($source); }
 
         global $wp_filesystem;
+        if (!$wp_filesystem) { return $source; }
+
         $new_source = trailingslashit($remote_source) . $expected;
-        if ($wp_filesystem && $wp_filesystem->move($source, $new_source)) {
-            return $new_source;
+        if ($wp_filesystem->exists($new_source)) { $wp_filesystem->delete($new_source, true); }
+        if ($wp_filesystem->move(untrailingslashit($source), $new_source)) {
+            return trailingslashit($new_source);
         }
-        return $source;
+        return trailingslashit($source);
     }
 
     public function action_links($links) {
