@@ -3,7 +3,7 @@
  * Plugin Name: Claude Writer
  * Plugin URI: https://targetseo.ro/
  * Description: Generează și rescrie articole SEO direct în editor, cu alegere între cele 3 modele Claude (Haiku 4.5, Sonnet 4.6, Opus 4.8). Conexiune directă la API-ul Anthropic, cu calcul de cost real per model și limită lunară de cheltuieli.
- * Version: 1.2.1
+ * Version: 1.2.2
  * Author: Eduard / TargetSEO
  * Text Domain: claude-writer
  * Requires at least: 5.6
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('CW_VERSION', '1.2.1');
+define('CW_VERSION', '1.2.2');
 define('CW_PATH', plugin_dir_path(__FILE__));
 define('CW_URL', plugin_dir_url(__FILE__));
 
@@ -134,11 +134,15 @@ TXT;
         update_option('cw_max_tokens', 8000, 'no');
     }
 
-    // Modelul implicit recomandat e acum Sonnet 4.6 (respectă mai bine instrucțiunile decât
-    // Haiku). Comutăm site-urile rămase pe vechiul implicit Haiku; alegerile manuale rămân.
-    // Reversibil oricând din Setări → Claude Writer.
-    if (get_option('cw_default_model', '') === 'claude-haiku-4-5') {
-        update_option('cw_default_model', 'claude-sonnet-4-6', 'no');
+    // Trecere UNICĂ pe Haiku 4.5 ca model implicit (mult mai rapid și ieftin; problemele lui
+    // de formatare sunt prinse în cod — fence, titlu, notă, continuare). Aducem pe Haiku
+    // site-urile comutate automat pe Sonnet la pasul anterior. Rulează o singură dată (flag),
+    // ca să NU suprascrie alegerea manuală a userului la fiecare update. Opus rămâne neatins.
+    if (false === get_option('cw_model_default_haiku', false)) {
+        if (get_option('cw_default_model', '') === 'claude-sonnet-4-6') {
+            update_option('cw_default_model', 'claude-haiku-4-5', 'no');
+        }
+        update_option('cw_model_default_haiku', 1, 'no');
     }
 
     // Streaming pornit implicit: textul apare în timp real, deci generarea pare mult mai
@@ -166,7 +170,7 @@ register_activation_hook(__FILE__, function () {
     // doar în admin, deci NU trebuie încărcate pe fiecare pagină din front-end.
     $defaults = array(
         'cw_api_key'            => '',
-        'cw_default_model'      => 'claude-sonnet-4-6',
+        'cw_default_model'      => 'claude-haiku-4-5',
         'cw_effort'             => 'medium',
         'cw_temperature'        => 0.8,
         'cw_max_tokens'         => 8000,
