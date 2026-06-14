@@ -1,0 +1,4 @@
+# Artefacte de build / junk OS — nu se versionează
+*.zip
+.DS_Store
+Thumbs.db
