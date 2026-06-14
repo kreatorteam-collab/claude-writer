@@ -3,7 +3,7 @@
  * Plugin Name: Claude Writer
  * Plugin URI: https://targetseo.ro/
  * Description: Generează și rescrie articole SEO direct în editor, cu alegere între cele 3 modele Claude (Haiku 4.5, Sonnet 4.6, Opus 4.8). Conexiune directă la API-ul Anthropic, cu calcul de cost real per model și limită lunară de cheltuieli.
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author: Eduard / TargetSEO
  * Text Domain: claude-writer
  * Requires at least: 5.6
@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('CW_VERSION', '1.2.0');
+define('CW_VERSION', '1.2.1');
 define('CW_PATH', plugin_dir_path(__FILE__));
 define('CW_URL', plugin_dir_url(__FILE__));
 
@@ -153,6 +153,11 @@ TXT;
         update_option('cw_disclaimer', CW_Admin::default_disclaimer(), 'no');
     }
 
+    // Auto-update activat implicit (se poate opri din Setări). Setăm valoarea pe site-urile fără ea.
+    if (false === get_option('cw_auto_update', false)) {
+        update_option('cw_auto_update', 1, 'no');
+    }
+
     update_option('cw_db_version', CW_VERSION, 'no');
 });
 
@@ -173,6 +178,7 @@ register_activation_hook(__FILE__, function () {
         'cw_title_prompt'       => CW_Admin::default_title_prompt(),
         'cw_keywords_prompt'    => CW_Admin::default_keywords_prompt(),
         'cw_disclaimer'         => CW_Admin::default_disclaimer(),
+        'cw_auto_update'        => 1,
         // Statistici de utilizare (create din timp ca să nu se autoîncarce)
         'cw_calls_total'        => 0,
         'cw_cost_total'         => 0,

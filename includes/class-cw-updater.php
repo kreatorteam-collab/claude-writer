@@ -28,13 +28,22 @@ class CW_Updater {
         add_filter('pre_set_site_transient_update_plugins', array($this, 'check_update'));
         add_filter('plugins_api', array($this, 'plugin_info'), 10, 3);
         add_filter('upgrader_source_selection', array($this, 'fix_source'), 10, 4);
+        add_filter('auto_update_plugin', array($this, 'auto_update'), 10, 2);
 
         // Link „Verifică update" sub plugin în lista de pluginuri.
         add_filter('plugin_action_links_' . $this->basename, array($this, 'action_links'));
         add_action('admin_init', array($this, 'maybe_force_check'));
     }
 
-    /** Citește info-ul de pe GitHub (cache 6h). Returnează array sau false. */
+    /** Auto-update activat implicit pentru acest plugin (se poate opri din Setări → Claude Writer). */
+    public function auto_update($update, $item) {
+        if (isset($item->plugin) && $item->plugin === $this->basename) {
+            return (bool) get_option('cw_auto_update', 1);
+        }
+        return $update;
+    }
+
+    /** Citește info-ul de pe GitHub (cache 1h). Returnează array sau false. */
     private function fetch_info($bust = false) {
         if (!$bust) {
             $cached = get_transient(self::CACHE_KEY);
@@ -60,7 +69,7 @@ class CW_Updater {
             return false;
         }
 
-        set_transient(self::CACHE_KEY, $info, 6 * HOUR_IN_SECONDS);
+        set_transient(self::CACHE_KEY, $info, HOUR_IN_SECONDS);
         return $info;
     }
 

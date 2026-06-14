@@ -57,6 +57,7 @@ class CW_Admin {
             'cw_title_prompt'       => 'sanitize_textarea_field',
             'cw_keywords_prompt'    => 'sanitize_textarea_field',
             'cw_disclaimer'         => 'sanitize_textarea_field',
+            'cw_auto_update'        => 'absint',
         );
         foreach ($opts as $name => $cb) {
             register_setting('cw_settings', $name, array('sanitize_callback' => $cb));
@@ -181,6 +182,10 @@ class CW_Admin {
                         </p>
                         <p>
                             <label><input type="checkbox" name="cw_stream_enabled" value="1" <?php checked(1, (int) get_option('cw_stream_enabled', 0)); ?> /> <?php esc_html_e('Activează streaming (text afișat în timp real)', 'claude-writer'); ?></label>
+                        </p>
+                        <p>
+                            <input type="hidden" name="cw_auto_update" value="0" />
+                            <label><input type="checkbox" name="cw_auto_update" value="1" <?php checked(1, (int) get_option('cw_auto_update', 1)); ?> /> <?php esc_html_e('Auto-update: instalează singur versiunile noi de pe GitHub', 'claude-writer'); ?></label>
                         </p>
                         <p>
                             <label class="cw-label"><?php esc_html_e('Limită lunară de cheltuieli ($, 0 = fără limită)', 'claude-writer'); ?></label>
