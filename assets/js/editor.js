@@ -62,42 +62,52 @@
         return doc.body.innerHTML;
     }
 
-    // Garantăm nota de final (disclaimer) ca <blockquote> în ORICE articol:
-    //  - dacă există deja un <blockquote>, nu atingem nimic;
-    //  - dacă modelul a pus o notă („Notă:…") ca <p>/<i>, o împachetăm în <blockquote>;
-    //  - dacă lipsește, adăugăm la final disclaimer-ul configurat (CW.disclaimer).
+    // Garantăm nota de final (disclaimer) ca <blockquote>, MEREU la finalul absolut al
+    // articolului. Dacă modelul a pus-o în mijloc, o mutăm la sfârșit; dacă lipsește,
+    // o construim din disclaimer-ul configurat (CW.disclaimer).
     function ensureDisclaimer(html) {
         var doc = document.implementation.createHTMLDocument('');
         doc.body.innerHTML = String(html || '');
 
-        if (doc.body.querySelector('blockquote')) { return doc.body.innerHTML; }
+        var note = null;
 
-        var blocks = doc.body.querySelectorAll('p, i, em');
-        var noteEl = null;
-        for (var i = blocks.length - 1; i >= 0; i--) {
-            if (/^\s*Not[ăa]\s*:/.test(blocks[i].textContent || '')) { noteEl = blocks[i]; break; }
-        }
-        if (noteEl) {
-            var block = noteEl;
-            if ((block.tagName === 'I' || block.tagName === 'EM') && block.parentNode && block.parentNode.tagName === 'P') {
-                block = block.parentNode;
+        // 1. Element cu text „Notă:" — cel mai sigur reper.
+        var cand = doc.body.querySelectorAll('blockquote, p, i, em');
+        for (var i = cand.length - 1; i >= 0 && !note; i--) {
+            if (/Not[ăa]\s*:/.test(cand[i].textContent || '')) {
+                var el = cand[i];
+                var inBq = el.closest ? el.closest('blockquote') : null;
+                if (inBq) { note = inBq; break; }
+                if ((el.tagName === 'I' || el.tagName === 'EM') && el.parentNode && el.parentNode.tagName === 'P') {
+                    el = el.parentNode;
+                }
+                var bq = doc.createElement('blockquote');
+                el.parentNode.insertBefore(bq, el);
+                bq.appendChild(el);
+                note = bq;
             }
-            var bq = doc.createElement('blockquote');
-            block.parentNode.insertBefore(bq, block);
-            bq.appendChild(block);
-            return doc.body.innerHTML;
         }
 
-        var d = $.trim(CW.disclaimer || '');
-        if (d) {
-            var bq2 = doc.createElement('blockquote');
-            var p2 = doc.createElement('p');
+        // 2. Fallback: orice blockquote existent (în aceste articole = nota).
+        if (!note) {
+            var bqs = doc.body.querySelectorAll('blockquote');
+            if (bqs.length) { note = bqs[bqs.length - 1]; }
+        }
+
+        // 3. Nimic — o construim din disclaimer-ul configurat.
+        if (!note) {
+            var d = $.trim((CW.disclaimer || '').replace(/[‒–—―−]/g, '-'));
+            if (!d) { return doc.body.innerHTML; }
+            note = doc.createElement('blockquote');
+            var p = doc.createElement('p');
             var it = doc.createElement('i');
             it.textContent = d;
-            p2.appendChild(it);
-            bq2.appendChild(p2);
-            doc.body.appendChild(bq2);
+            p.appendChild(it);
+            note.appendChild(p);
         }
+
+        // Nota mereu la finalul absolut (dacă era în mijloc, o mutăm aici).
+        doc.body.appendChild(note);
         return doc.body.innerHTML;
     }
 
@@ -187,6 +197,8 @@
     // Ce facem cu rezultatul, în funcție de acțiune.
     function handleResult(action, text, cost) {
         text = stripCodeFence(text);
+        // Fără liniuță lungă (—) / medie (–) etc. — doar cratimă normală „-".
+        text = text.replace(/[‒–—―−]/g, '-');
         var c = costLabel(cost);
         if (action === 'title') {
             $output.hide();
