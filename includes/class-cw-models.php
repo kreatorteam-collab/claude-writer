@@ -53,8 +53,8 @@ class CW_Models {
 
     /** Modelul implicit configurat (cu fallback sigur). */
     public static function default_model() {
-        $m = get_option('cw_default_model', 'claude-haiku-4-5');
-        return self::exists($m) ? $m : 'claude-haiku-4-5';
+        $m = get_option('cw_default_model', 'claude-sonnet-4-6');
+        return self::exists($m) ? $m : 'claude-sonnet-4-6';
     }
 
     /**

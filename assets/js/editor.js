@@ -120,6 +120,20 @@
             note.appendChild(p);
         }
 
+        // Dacă nota iese goală sau doar „Notă:" (model malformat), o umplem cu disclaimer-ul configurat.
+        var bodyTxt = $.trim((note.textContent || '').replace(/Not[ăa]\s*:/i, ''));
+        if (bodyTxt.length < 15) {
+            var dd = $.trim((CW.disclaimer || '').replace(/[‒–—―−]/g, '-'));
+            if (dd) {
+                while (note.firstChild) { note.removeChild(note.firstChild); }
+                var pp = doc.createElement('p');
+                var ii = doc.createElement('i');
+                ii.textContent = dd;
+                pp.appendChild(ii);
+                note.appendChild(pp);
+            }
+        }
+
         // Nota mereu la finalul absolut (dacă era în mijloc, o mutăm aici).
         doc.body.appendChild(note);
         return doc.body.innerHTML;
