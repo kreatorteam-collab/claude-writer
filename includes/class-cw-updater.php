@@ -16,6 +16,7 @@ if (!defined('ABSPATH')) { exit; }
 class CW_Updater {
 
     const INFO_URL  = 'https://raw.githubusercontent.com/kreatorteam-collab/claude-writer/main/.update-info.json';
+    const API_URL   = 'https://api.github.com/repos/kreatorteam-collab/claude-writer/contents/.update-info.json?ref=main';
     const CACHE_KEY = 'cw_update_info';
 
     private $basename; // ex: claude-writer/claude-writer.php
@@ -51,26 +52,48 @@ class CW_Updater {
             if (is_array($cached)) { return $cached; }
         }
 
-        $url  = self::INFO_URL . ($bust ? ('?_=' . time()) : '');
-        $args = array('timeout' => 8);
-        if ($bust) {
-            $args['headers'] = array('Cache-Control' => 'no-cache', 'Pragma' => 'no-cache');
-        }
+        // Întâi API-ul GitHub (proaspăt) — raw.githubusercontent are cache CDN de câteva
+        // minute care IGNORĂ cache-buster-ul din query, deci „Verifică update" ar prinde
+        // versiunea veche. API-ul nu are cache-ul ăla. Raw rămâne ca rezervă.
+        $info = $this->fetch_api();
+        if (!$info) { $info = $this->fetch_raw($bust); }
 
-        $response = wp_remote_get($url, $args);
-        if (is_wp_error($response) || 200 !== wp_remote_retrieve_response_code($response)) {
-            set_transient(self::CACHE_KEY, 'error', 30 * MINUTE_IN_SECONDS);
-            return false;
-        }
-
-        $info = json_decode(wp_remote_retrieve_body($response), true);
-        if (!is_array($info) || empty($info['version']) || empty($info['package'])) {
+        if (!$info) {
             set_transient(self::CACHE_KEY, 'error', 30 * MINUTE_IN_SECONDS);
             return false;
         }
 
         set_transient(self::CACHE_KEY, $info, HOUR_IN_SECONDS);
         return $info;
+    }
+
+    /** Sursa principală: API GitHub (Accept: raw -> conținutul fișierului direct). */
+    private function fetch_api() {
+        $response = wp_remote_get(self::API_URL, array(
+            'timeout' => 8,
+            'headers' => array(
+                'Accept'        => 'application/vnd.github.raw+json',
+                'User-Agent'    => 'claude-writer-updater',
+                'Cache-Control' => 'no-cache',
+            ),
+        ));
+        if (is_wp_error($response) || 200 !== wp_remote_retrieve_response_code($response)) { return false; }
+        return self::valid_info(json_decode(wp_remote_retrieve_body($response), true));
+    }
+
+    /** Rezervă: raw.githubusercontent (cu cache-buster când forțăm verificarea). */
+    private function fetch_raw($bust) {
+        $url  = self::INFO_URL . ($bust ? ('?_=' . time()) : '');
+        $args = array('timeout' => 8);
+        if ($bust) { $args['headers'] = array('Cache-Control' => 'no-cache', 'Pragma' => 'no-cache'); }
+
+        $response = wp_remote_get($url, $args);
+        if (is_wp_error($response) || 200 !== wp_remote_retrieve_response_code($response)) { return false; }
+        return self::valid_info(json_decode(wp_remote_retrieve_body($response), true));
+    }
+
+    private static function valid_info($info) {
+        return (is_array($info) && !empty($info['version']) && !empty($info['package'])) ? $info : false;
     }
 
     /** Injectează update-ul în transientul WP dacă există o versiune nouă. */
