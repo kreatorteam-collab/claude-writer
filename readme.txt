@@ -3,7 +3,7 @@ Contributors: Eduard / TargetSEO
 Tags: ai, claude, anthropic, content, seo, articole
 Requires at least: 5.6
 Requires PHP: 7.4
-Stable tag: 1.2.3
+Stable tag: 1.2.4
 License: GPLv2 or later
 
 Generează și rescrie articole SEO direct în editor, cu alegere între cele 3 modele Claude.
@@ -36,6 +36,9 @@ Funcții:
 4. Deschide un articol: panoul „Claude Writer" apare în coloana din dreapta.
 
 == Changelog ==
+
+= 1.2.4 =
+* Scoate <div> și <span> din articol (modelul punea uneori un <div> stilizat gol ca „separator") și elimină stilurile inline (style="..."). Rămâne HTML curat semantic, fără cutii goale.
 
 = 1.2.3 =
 * Fără liniuță lungă: orice „—" / „–" din articol e convertit automat în cratimă normală „-".

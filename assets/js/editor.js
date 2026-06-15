@@ -8,14 +8,28 @@
     function cwSanitize(html) {
         var doc = document.implementation.createHTMLDocument('');
         doc.body.innerHTML = String(html || '');
+
+        // 1. Elemente periculoase / nepermise — eliminate complet.
         var strip = doc.body.querySelectorAll('script,iframe,object,embed,style,link,meta,form,base');
         Array.prototype.forEach.call(strip, function (n) { if (n.parentNode) { n.parentNode.removeChild(n); } });
+
+        // 2. <div>/<span> nu au ce căuta în articol (modelul pune uneori un <div> stilizat gol
+        //    ca „separator"). Le despachetăm: păstrăm conținutul, iar cele goale dispar.
+        var wrap = doc.body.querySelectorAll('div, span');
+        Array.prototype.forEach.call(wrap, function (el) {
+            var p = el.parentNode;
+            if (!p) { return; }
+            while (el.firstChild) { p.insertBefore(el.firstChild, el); }
+            p.removeChild(el);
+        });
+
+        // 3. Curățăm atributele rămase: handlere on*, stiluri inline și linkuri javascript:.
         var all = doc.body.querySelectorAll('*');
         Array.prototype.forEach.call(all, function (el) {
             Array.prototype.slice.call(el.attributes).forEach(function (a) {
                 var name = a.name.toLowerCase();
                 var val = (a.value || '').replace(/\s/g, '').toLowerCase();
-                if (name.indexOf('on') === 0) { el.removeAttribute(a.name); }
+                if (name.indexOf('on') === 0 || name === 'style') { el.removeAttribute(a.name); }
                 else if ((name === 'href' || name === 'src') && val.indexOf('javascript:') === 0) { el.removeAttribute(a.name); }
             });
         });
