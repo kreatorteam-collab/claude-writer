@@ -51,11 +51,11 @@ class CW_Admin {
             'cw_max_tokens'         => 'absint',
             'cw_stream_enabled'     => 'absint',
             'cw_monthly_cost_limit' => 'cw_sanitize_float',
-            'cw_system_prompt'      => 'sanitize_textarea_field',
-            'cw_article_prompt'     => 'sanitize_textarea_field',
-            'cw_rewrite_prompt'     => 'sanitize_textarea_field',
-            'cw_title_prompt'       => 'sanitize_textarea_field',
-            'cw_keywords_prompt'    => 'sanitize_textarea_field',
+            'cw_system_prompt'      => 'cw_sanitize_prompt',
+            'cw_article_prompt'     => 'cw_sanitize_prompt',
+            'cw_rewrite_prompt'     => 'cw_sanitize_prompt',
+            'cw_title_prompt'       => 'cw_sanitize_prompt',
+            'cw_keywords_prompt'    => 'cw_sanitize_prompt',
             'cw_disclaimer'         => 'sanitize_textarea_field',
             'cw_auto_update'        => 'absint',
         );
@@ -522,5 +522,15 @@ if (!function_exists('cw_sanitize_key')) {
 if (!function_exists('cw_sanitize_float')) {
     function cw_sanitize_float($val) {
         return (float) $val;
+    }
+}
+if (!function_exists('cw_sanitize_prompt')) {
+    // Prompturile sunt instrucțiuni trimise la API și pot conține mențiuni de tag-uri HTML
+    // (<p>, <h2>, <a>, <table> etc.). NU le strippăm (cum ar face sanitize_textarea_field prin
+    // strip_all_tags). Sunt editabile DOAR de admin (manage_options) și afișate escapat în
+    // formular (esc_textarea) + trimise la API ca text (nu sunt executate), deci e sigur.
+    function cw_sanitize_prompt($val) {
+        $val = wp_check_invalid_utf8((string) $val);
+        return trim(str_replace(array("\r\n", "\r"), "\n", $val));
     }
 }

@@ -3,7 +3,7 @@ Contributors: Eduard / TargetSEO
 Tags: ai, claude, anthropic, content, seo, articole
 Requires at least: 5.6
 Requires PHP: 7.4
-Stable tag: 1.2.6
+Stable tag: 1.2.7
 License: GPLv2 or later
 
 Generează și rescrie articole SEO direct în editor, cu alegere între cele 3 modele Claude.
@@ -36,6 +36,9 @@ Funcții:
 4. Deschide un articol: panoul „Claude Writer" apare în coloana din dreapta.
 
 == Changelog ==
+
+= 1.2.7 =
+* Prompturile pot conține acum mențiuni de tag-uri HTML (<p>, <h2>, <a>, <table>) fără să fie șterse la salvare — necesar pentru prompturi avansate (ex. advertoriale optimizate pentru AI Overview). Înainte, salvarea din formular stripa tag-urile din prompt.
 
 = 1.2.6 =
 * Model implicit înapoi pe Sonnet 4.6 (Haiku producea uneori note malformate/goale și formatări neglijente). Comutare unică Haiku → Sonnet.
